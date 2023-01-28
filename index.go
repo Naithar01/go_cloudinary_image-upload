@@ -2,7 +2,10 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"log"
 	"net/http"
+	"os"
 
 	"github.com/Naithar01/go_gin_image-upload/img_upload_cloudinary"
 	"github.com/gin-gonic/gin"
@@ -33,6 +36,23 @@ func main() {
 		fmt.Println(image_file_info_list)
 
 		c.JSON(http.StatusOK, image_file_info_list)
+	})
+
+	router.GET("/file", func(c *gin.Context) {
+		file, header, err := c.Request.FormFile("upload")
+		filename := header.Filename
+		file_path := "img/" + filename
+		out, err := os.Create(file_path)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer out.Close()
+		_, err = io.Copy(out, file)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		c.JSON(http.StatusCreated, file_path)
 	})
 
 	router.Run()
